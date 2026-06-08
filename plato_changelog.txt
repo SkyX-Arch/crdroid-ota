@@ -3,45 +3,6 @@ Build type: Monthly
 Device: Xiaomi 12T
 Device maintainer: SkyFox
 
-===== 30.12.2025 =====
-- Integrated January security patch to enhance system security
-- Fixed minor bugs to improve overall reliability
-- Optimized thermal handling for UI-intensive workloads
-- Improved UI smoothness and touch responsiveness
-- Various internal optimizations and stability improvements for better overall performance
-
-===== 30.12.2025 =====
-- Initial crDroid 12.5
-- Updated base to Android 16 QPR1
-
-===== 20.12.2025 =====
-- December 2025 security patch merged
-- Optimized thermal handling for UI workloads
-- Improved UI smoothness and touch responsiveness
-- Various internal optimizations and bug fixes to enhance system stability
-
-===== 11.11.2025 =====
-- Merged November 2025 security patch
-- Improved UI smoothness and responsiveness
-- Enhanced battery efficiency
-- Misc under-the-hood improvements and bug fixes
-
-===== 13.10.2025 =====
-- Merged October 2025 security patch for enhanced device protection
-- Implemented UI refinements for improved responsiveness and smoother user experience
-- Optimized system performance and stability for consistent operation
-- Enhanced battery efficiency for extended usage time
-- Included various under-the-hood improvements and minor bug fixes
-
-===== 04.10.2025 =====
-- Fixed various stability and functional bugs
-- General performance improvements
-- Merged September security patch
-
-===== 04.10.2025 =====
-- Fixed various stability and functional bugs
-- General performance improvements
-- Merged September security patch
-
-===== 23.09.2025 =====
-- Initial official build
+===== 09.06.2025 =====
+- Integrated OTA Update
+- Fixed minor bugs 
