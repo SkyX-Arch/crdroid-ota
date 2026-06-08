@@ -1,0 +1,28 @@
+{
+    "response": [
+        {
+            "maintainer": "SkyFox",
+            "oem": "Xiaomi",
+            "device": "Xiaomi 12T",
+            "filename": "ИМЯ_ВАШЕГО_СОБРАННОГО_ФАЙЛА.zip",
+            "download": "https://github.com",
+            "timestamp": 1717872000,
+            "md5": "МД5_ХЭШ_ФАЙЛА",
+            "sha256": "SHA256_ХЭШ_ФАЙЛА",
+            "size": 2147483648,
+            "version": "10.x",
+            "buildtype": "Weekly",
+            "forum": "",
+            "gapps": "",
+            "firmware": "",
+            "modem": "",
+            "bootloader": "",
+            "recovery": "",
+            "paypal": "",
+            "telegram": "",
+            "dt": "https://github.com",
+            "common-dt": "",
+            "kernel": ""
+        }
+    ]
+}
