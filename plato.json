@@ -10,19 +10,19 @@
             "md5": "МД5_ХЭШ_ФАЙЛА",
             "sha256": "SHA256_ХЭШ_ФАЙЛА",
             "size": 2147483648,
-            "version": "10.x",
-            "buildtype": "Weekly",
+            "version": "12.11",
+            "buildtype": "Monthly",
             "forum": "",
-            "gapps": "",
+            "gapps": "https://sourceforge.net/projects/nikgapps/files/Releases/Android-16/22-Feb-2025/",
             "firmware": "",
             "modem": "",
             "bootloader": "",
             "recovery": "",
             "paypal": "",
             "telegram": "",
-            "dt": "https://github.com",
-            "common-dt": "",
-            "kernel": ""
+            "dt": "https://github.com/archcloudy/android_device_xiaomi_plato",
+            "common-dt": "https://github.com/XagaForge/android_device_xiaomi_mt6895-common",
+            "kernel": "https://github.com/XagaForge/android_kernel_xiaomi_mt6895"
         }
     ]
 }
