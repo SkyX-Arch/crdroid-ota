@@ -5,7 +5,7 @@ The Xiaomi 12T (codenamed _"plato"_) is an upper mid-range smartphone from Xiaom
 
 It was announced and released in October 2022.
 
-All credits and work goes to Xiaomi MT6895 Devs and XagaForge and Archcloudy.
+All credits and work goes to [Xiaomi MT6895 Devs](https://github.com/xiaomi-mt6895-devs) and [XagaForge](https://github.com/XagaForge) and [Archcloudy](https://github.com/archcloudy).
 
 ## Device specifications
 
