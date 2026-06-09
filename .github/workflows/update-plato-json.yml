@@ -1,0 +1,94 @@
+name: Update plato.json on Release
+
+on:
+  release:
+    types: [published]
+
+jobs:
+  update-plato-json:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          ref: main
+
+      - name: Get release asset info
+        id: asset
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          RELEASE_TAG="${{ github.event.release.tag_name }}"
+          REPO="${{ github.repository }}"
+
+          # Имя первого .zip-файла в релизе
+          ASSET_NAME=$(gh release view "$RELEASE_TAG" --json assets \
+            -q '.assets[] | select(.name | endswith(".zip")) | .name' | head -n 1)
+
+          # Прямой браузерный URL для скачивания (не API)
+          ASSET_URL="https://github.com/${REPO}/releases/download/${RELEASE_TAG}/${ASSET_NAME}"
+
+          echo "name=$ASSET_NAME"   >> $GITHUB_OUTPUT
+          echo "url=$ASSET_URL"     >> $GITHUB_OUTPUT
+          echo "tag=$RELEASE_TAG"   >> $GITHUB_OUTPUT
+
+      - name: Download release ZIP
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release download "${{ steps.asset.outputs.tag }}" \
+            --pattern "*.zip" \
+            --output release.zip
+
+      - name: Compute hashes and size
+        id: hashes
+        run: |
+          echo "md5=$(md5sum release.zip | awk '{print $1}')"       >> $GITHUB_OUTPUT
+          echo "sha256=$(sha256sum release.zip | awk '{print $1}')" >> $GITHUB_OUTPUT
+          echo "size=$(stat -c%s release.zip)"                       >> $GITHUB_OUTPUT
+          echo "timestamp=$(date +%s)"                               >> $GITHUB_OUTPUT
+
+      - name: Update plato.json
+        env:
+          ASSET_NAME: ${{ steps.asset.outputs.name }}
+          ASSET_URL:  ${{ steps.asset.outputs.url }}
+          MD5:        ${{ steps.hashes.outputs.md5 }}
+          SHA256:     ${{ steps.hashes.outputs.sha256 }}
+          SIZE:       ${{ steps.hashes.outputs.size }}
+          TIMESTAMP:  ${{ steps.hashes.outputs.timestamp }}
+        run: |
+          python3 - <<'PYEOF'
+          import json, os
+
+          path = "plato.json"
+
+          with open(path, "r", encoding="utf-8") as f:
+              data = json.load(f)
+
+          # Структура: {"response": [ {...} ]}
+          entry = data["response"][0]
+
+          entry["filename"]  = os.environ["ASSET_NAME"]
+          entry["download"]  = os.environ["ASSET_URL"]
+          entry["timestamp"] = int(os.environ["TIMESTAMP"])
+          entry["md5"]       = os.environ["MD5"]
+          entry["sha256"]    = os.environ["SHA256"]
+          entry["size"]      = int(os.environ["SIZE"])
+
+          with open(path, "w", encoding="utf-8") as f:
+              json.dump(data, f, indent=4, ensure_ascii=False)
+
+          print("plato.json updated successfully")
+          PYEOF
+
+      - name: Commit and push plato.json
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add plato.json
+          git diff --cached --quiet && echo "No changes to commit" && exit 0
+          git commit -m "chore: update plato.json for release ${{ steps.asset.outputs.tag }}"
+          git push
