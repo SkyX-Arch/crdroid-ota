@@ -1,5 +1,5 @@
 Highlights & Device Specific Changes:
-Build type: User
+Build type: Unofficial
 Device: Xiaomi 12T
 Device maintainer: SkyFox
 
