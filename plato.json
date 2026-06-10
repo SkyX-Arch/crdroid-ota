@@ -13,7 +13,7 @@
             "version": "12.11",
             "buildtype": "Unofficial",
             "forum": "https://github.com/SkyX-Arch/crdroid-ota",
-            "gapps": "https://sourceforge.net/projects/nikgapps/files/Releases/Android-16/22-Feb-2025/",
+            "gapps": "https://sourceforge.net/projects/nikgapps/files/Elite-Releases/crdroid-official/Android-16/",
             "firmware": "https://xmfirmwareupdater.com/firmware/plato/stable/OS2.0.214.0.VLQMIXM/",
             "modem": "",
             "bootloader": "",
