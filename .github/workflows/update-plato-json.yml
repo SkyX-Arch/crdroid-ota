@@ -49,7 +49,7 @@ jobs:
           echo "md5=$(md5sum release.zip | awk '{print $1}')"       >> $GITHUB_OUTPUT
           echo "sha256=$(sha256sum release.zip | awk '{print $1}')" >> $GITHUB_OUTPUT
           echo "size=$(stat -c%s release.zip)"                       >> $GITHUB_OUTPUT
-          echo "timestamp=$(unzip -p release.zip META-INF/com/android/metadata | grep 'post-timestamp' | cut -d'=' -f2)" >> $GITHUB_OUTPUT
+          echo "timestamp=$(( $(unzip -p release.zip META-INF/com/android/metadata | grep 'post-timestamp' | cut -d'=' -f2) + 1 ))" >> $GITHUB_OUTPUT
 
       - name: Update plato.json
         env:
