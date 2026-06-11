@@ -7,6 +7,19 @@ It was announced and released in October 2022.
 
 All credits and work goes to [Xiaomi MT6895 Devs](https://github.com/xiaomi-mt6895-devs) and [XagaForge](https://github.com/XagaForge) and [Archcloudy](https://github.com/archcloudy).
 
+## Features
+
+crDroid UNOFFICIAL Android 16 | Xiaomi 12T (plato)
+
+✔ Android 16
+✔ User build
+✔ Release keys
+✔ OTA updates
+✔ Up-to-date crDroid sources
+
+Signed with release keys and supports OTA updates via the built-in updater.
+
+
 ## Device specifications
 
 Basic   | Spec Sheet
