@@ -1,4 +1,4 @@
-Device configuration for Xiaomi 12T
+Xiaomi 12T
 =============================================================
 
 The Xiaomi 12T (codenamed _"plato"_) is an upper mid-range smartphone from Xiaomi.
