@@ -1,7 +1,7 @@
 Highlights & Device Specific Changes:
 Build type: Unofficial
 Device: Xiaomi 12T
-Device maintainer: SkyFox
+Device maintainer: SkyX-Arch
 
 ===== 09.06.2026 =====
 • Integrated OTA Update
