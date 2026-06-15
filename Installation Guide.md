@@ -7,7 +7,7 @@
 
 Before starting, download the following files:
 
-* `preloader_plato.bin`
+* [preloader_plato.bin](https://pixeldrain.com/u/6eYXU83J)
 * Latest crDroid ROM package
 * GApps package (optional)
 * Latest Android Platform Tools (ADB/Fastboot)
