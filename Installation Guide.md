@@ -10,7 +10,7 @@ Before starting, download the following files:
 * [preloader_plato.bin](https://pixeldrain.com/u/6eYXU83J)
 * [Latest crDroid ROM package](https://github.com/SkyX-Arch/crdroid-ota/releases/latest)
 * [GApps package](https://sourceforge.net/projects/nikgapps/files/Elite-Releases/crdroid-official/Android-16/) (optional)
-* Latest Android Platform Tools (ADB/Fastboot)
+* [Latest Android Platform Tools](https://developer.android.com/tools/releases/platform-tools) (ADB/Fastboot)
 
 Additionally:
 
