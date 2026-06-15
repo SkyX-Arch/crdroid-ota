@@ -23,6 +23,8 @@ crDroid UNOFFICIAL Android 16 | Xiaomi 12T (plato)
 
 Signed with release keys and supports OTA updates via the built-in updater.
 
+[Installation Guide](https://github.com/SkyX-Arch/crdroid-ota/blob/main/Installation%20Guide.md)
+
 
 ## Device specifications
 
