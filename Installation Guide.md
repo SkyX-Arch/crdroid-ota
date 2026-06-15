@@ -71,7 +71,7 @@ Inside Recovery:
 From your computer:
 
 ```bash
-adb sideload crDroidAndroid-16.0-20260607-plato-v12.11.zip
+adb sideload <crDroid>.zip
 ```
 
 If Recovery prompts for a reboot at approximately **47%**, confirm it.
