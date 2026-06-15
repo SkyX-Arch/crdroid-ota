@@ -16,3 +16,10 @@ Device maintainer: SkyX-Arch
 • Reduced excessive ADB logging
 • Improved power management
 • Cleaned up Audio HAL configuration
+===== 15.06.2026 =====
+• Synced with latest crDroid sources
+• Improved device wake-up handling
+• Reduced unnecessary camera-related system messages
+• Improved Wi-Fi monitoring and diagnostics
+• Fixed Wi-Fi statistics reporting
+• Improved overall Wi-Fi stability
