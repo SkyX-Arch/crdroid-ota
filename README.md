@@ -80,6 +80,7 @@ Special thanks to:
 - [Xiaomi MT6895 Devs](https://github.com/xiaomi-mt6895-devs)
 - [XagaForge](https://github.com/XagaForge)
 - [Archcloudy](https://github.com/archcloudy)
+- [crDroid Team](https://github.com/crdroidandroid)
 
 ---
 
