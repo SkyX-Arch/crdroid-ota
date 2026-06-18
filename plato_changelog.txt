@@ -1,25 +1,37 @@
-Highlights & Device Specific Changes:
+Highlights & Device Specific Changes
+-----------------------------------
+Device: Xiaomi 12T (plato)
 Build type: Unofficial
-Device: Xiaomi 12T
-Device maintainer: SkyX-Arch
+Maintainer: SkyX-Arch
 
-===== 09.06.2026 =====
-• Integrated OTA Update
-• Fixed minor bugs 
-===== 12.06.2026 =====
-• Synced with latest crDroid sources
-• Fixed Recent Apps persistence after reboot
-• Improved Wi-Fi stability
-• Updated SELinux policies
-• Reduced boot-time log spam
-• Improved background process scheduling
-• Reduced excessive ADB logging
-• Improved power management
-• Cleaned up Audio HAL configuration
-===== 15.06.2026 =====
-• Synced with latest crDroid sources
-• Improved device wake-up handling
-• Reduced unnecessary camera-related system messages
-• Improved Wi-Fi monitoring and diagnostics
-• Fixed Wi-Fi statistics reporting
-• Improved overall Wi-Fi stability
+====================================================
+
+2026-06-15
+----------------------------------------------------
+- Improved device wake-up handling
+- Reduced unnecessary camera-related system messages
+- Improved Wi-Fi monitoring and diagnostics
+- Fixed Wi-Fi statistics reporting
+- Improved overall Wi-Fi stability
+- Synced with latest crDroid sources
+
+====================================================
+
+2026-06-12
+----------------------------------------------------
+- Fixed Recent Apps state persistence after reboot
+- Improved Wi-Fi stability
+- Updated SELinux policies
+- Reduced boot-time log spam
+- Improved background process scheduling
+- Reduced excessive ADB logging
+- Improved power management
+- Cleaned up Audio HAL configuration
+- Synced with latest crDroid sources
+
+====================================================
+
+2026-06-10
+----------------------------------------------------
+- Integrated OTA Update support
+- Fixed minor bugs and improved stability
