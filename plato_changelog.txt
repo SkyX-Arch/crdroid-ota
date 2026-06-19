@@ -6,6 +6,21 @@ Maintainer: SkyX-Arch
 
 ====================================================
 
+2026-06-19
+----------------------------------------------------
+- Fixed screen artifacts and corrupted screenshots
+- Restored proper graphics buffer handling on Android 16
+- Improved compatibility with Android 16 linker namespace restrictions
+- Fixed memory management issues caused by cgroup permission errors
+- Fixed a race condition that could cause the System Update UI to crash when an OTA update completed while viewing the update screen
+- Optimized vendor graphics service initialization
+- Improved media decoder fallback behavior
+- Cleaned up obsolete graphics, sensor, and neural network driver symlinks
+- Reduced boot-time service initialization log spam
+- Fixed excessive Photo Picker logcat spam during boot
+
+====================================================
+
 2026-06-15
 ----------------------------------------------------
 - Improved device wake-up handling
