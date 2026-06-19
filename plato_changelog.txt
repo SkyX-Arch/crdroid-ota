@@ -18,6 +18,7 @@ Maintainer: SkyX-Arch
 - Cleaned up obsolete graphics, sensor, and neural network driver symlinks
 - Reduced boot-time service initialization log spam
 - Fixed excessive Photo Picker logcat spam during boot
+- Reduced excessive logcat spam caused by periodic system memory compaction (compactSystem)
 
 ====================================================
 
