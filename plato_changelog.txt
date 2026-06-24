@@ -6,6 +6,15 @@ Maintainer: SkyX-Arch
 
 ====================================================
 
+2026-06-24
+----------------------------------------------------
+- Fixed residual issues with selinux in the device tree, improving overall system stability
+- Added and adapted support for Dolby Atmos for the plato device
+- Reducing logcat spam
+
+
+====================================================
+
 2026-06-19
 ----------------------------------------------------
 - Fixed screen artifacts and corrupted screenshots
