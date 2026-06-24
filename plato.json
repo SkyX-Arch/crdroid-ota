@@ -19,7 +19,7 @@
             "bootloader": "",
             "recovery": "",
             "paypal": "",
-            "telegram": "",
+            "telegram": "https://t.me/SkyXArch",
             "dt": "https://github.com/archcloudy/android_device_xiaomi_plato",
             "common-dt": "https://github.com/XagaForge/android_device_xiaomi_mt6895-common",
             "kernel": "https://github.com/XagaForge/android_kernel_xiaomi_mt6895"
