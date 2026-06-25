@@ -6,6 +6,20 @@ Maintainer: SkyX-Arch
 
 ====================================================
 
+2026-06-25
+----------------------------------------------------
+- Fixed issues that could cause media instability related to hardware AI processing
+- Fixed missing network service startup scripts, restoring proper connectivity initialization
+- Improved compatibility between legacy MediaTek components and Android 16 framework
+- Enabled hardware AI acceleration features (image enhancement and upscaling)
+- Restored legacy network service daemon for stable system networking
+- Restored AI hardware service integration, improving performance of device-side AI features
+- Improved overall system responsiveness by removing service-level freezes on MediaTek platform components
+- Reduced repeated display engine errors during media playback
+- Removed excessive legacy network error spam from system logs
+
+====================================================
+
 2026-06-24
 ----------------------------------------------------
 - Fixed residual issues with selinux in the device tree, improving overall system stability
