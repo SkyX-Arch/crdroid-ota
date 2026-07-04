@@ -9,7 +9,6 @@ Maintainer: SkyX-Arch
 2026-07-04
 ----------------------------------------------------
 - Improved refresh rate behavior for smoother animations and scrolling
-- Optimized app installation, reducing installation and update times
 - Enabled advanced ZRAM and UFS performance optimizations for better multitasking
 - Enabled Zero Shutter Lag (ZSL) support for faster camera capture
 - Improved stereo speaker orientation based on screen rotation
@@ -20,8 +19,6 @@ Maintainer: SkyX-Arch
 - Updated SELinux policies for improved security, compatibility, and overall system stability
 - Added kernel support for SUSFS
 - Disabled Smart Pixels while using the under-display fingerprint sensor (UDFPS) to prevent display-related issues (Thanks to Archcloudy for the fix!)
-- Reduced unnecessary background logging to improve thermal behavior under heavy load
-- Optimized idle power management for better battery life
 - Replaced the default AOSP Camera with Google Camera for better photo quality out of the box
 - Replaced the default gallery with one that integrates seamlessly with Google Camera
 
