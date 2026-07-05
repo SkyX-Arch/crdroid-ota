@@ -19,8 +19,6 @@ Maintainer: SkyX-Arch
 - Updated SELinux policies for improved security, compatibility, and overall system stability
 - Added kernel support for SUSFS
 - Disabled Smart Pixels while using the under-display fingerprint sensor (UDFPS) to prevent display-related issues (Thanks to Archcloudy for the fix!)
-- Replaced the default AOSP Camera with Google Camera for better photo quality out of the box
-- Replaced the default gallery with one that integrates seamlessly with Google Camera
 
 
 ====================================================
