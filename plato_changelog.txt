@@ -14,6 +14,7 @@ Maintainer: SkyX-Arch
 - Improved system performance by optimizing the Mediatek Dimencity 8100 Ultra processor with appropriate settings
 - Enabling processor frequency boost in certain tasks
 - Improved logic for energy-efficient processor cores by configuring the Mediatek scheduler
+- Improved system interface rendering and display image quality
 
 ====================================================
 
