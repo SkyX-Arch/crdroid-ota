@@ -6,6 +6,17 @@ Maintainer: SkyX-Arch
 
 ====================================================
 
+2026-07-08
+----------------------------------------------------
+- Updating SELinux policies for audio and power management services
+- Improved battery saving service by adding necessary configs
+- Added misound stereo sound enhancer, phone sound should become clearer
+- Improved system performance by optimizing the Mediatek Dimencity 8100 Ultra processor with appropriate settings
+- Enabling processor frequency boost in certain tasks
+- Improved logic for energy-efficient processor cores by configuring the Mediatek scheduler
+
+====================================================
+
 2026-07-05
 ----------------------------------------------------
 - Improved refresh rate behavior for smoother animations and scrolling
@@ -19,10 +30,6 @@ Maintainer: SkyX-Arch
 - Updated SELinux policies for improved security, compatibility, and overall system stability
 - Added kernel support for SUSFS
 - Disabled Smart Pixels while using the under-display fingerprint sensor (UDFPS) to prevent display-related issues (Thanks to Archcloudy for the fix!)
-
-
-====================================================
-
 
 ====================================================
 
