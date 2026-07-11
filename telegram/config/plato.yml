@@ -1,0 +1,113 @@
+# SkyX-Arch release configuration
+# Copy this file (e.g. telegram/config/crdroid-plato.yml) to add another
+# ROM/device combination. The workflow accepts --config as an input, so
+# no code changes are needed to support new configs.
+
+rom_name: crDroid Android
+
+website:
+  url: https://skyx-arch.github.io/SkyX-Arch_ROM_site/
+  text: SkyX-Arch ROM Portal
+
+image:
+  enabled: true
+  path: telegram/assets/release_banner.png
+
+pin_message: false
+
+# -----------------------------------------------------------------------
+# known_issues is NOT pulled from the OTA json below - an OTA server has
+# no concept of "known issues", that data simply doesn't exist there.
+# This is a plain hand-maintained list: update it yourself for each release.
+# Leave the list empty ("known_issues: []") to render "• None".
+# -----------------------------------------------------------------------
+known_issues:
+  - Keep Smart Pixels disabled.
+  - X-Engine may cause washed-out colors or a white tint on Android 16. See the pinned post for a workaround. A permanent fix depends on upstream ROM changes.
+
+# -----------------------------------------------------------------------
+# Everything below is pulled automatically from a JSON file that lives at
+# the REPOSITORY ROOT (plato.json), because it's written there by another
+# workflow/bot at release time (not by this repo's own release process).
+#
+# Naming convention this workflow relies on: "plato.json" (root) pairs with
+# "telegram/config/plato.yml" (this file). When the root JSON changes, the
+# publish workflow finds this config automatically by stripping ".json"
+# and looking for "telegram/config/<name>.yml" - see .github/workflows/.
+#
+# `fields` is a MAPPING you control: the key on the left (e.g. download_url)
+# is the placeholder name used in the template/buttons ({{DOWNLOAD_URL}}).
+# The value on the right is the actual key name USED IN THIS PARTICULAR
+# json file. Different ROMs/OTA servers name things differently - e.g. one
+# calls the download link "download", another calls it "url". To adapt to
+# a different ROM's JSON, you only edit the right-hand side here, e.g.:
+#
+#     download_url: url        # instead of: download_url: download
+#
+# No changes to the Python script are ever required for this.
+# -----------------------------------------------------------------------
+source:
+  path: plato.json                 # root-level JSON, updated by another workflow
+  list_key: response                 # this file's data lives under {"response": [...]}
+  index: 0                           # use the first entry in that list
+  fields:
+    device: device                 # -> {{DEVICE}}
+    oem: oem                       # -> {{OEM}}
+    maintainer: maintainer         # -> {{MAINTAINER}}
+    version: version                # -> {{VERSION}}
+    filename: filename              # -> {{FILENAME}}
+    download_url: download           # -> {{DOWNLOAD_URL}}  (this json calls it "download")
+    build_date:                      # -> {{BUILD_DATE}}
+      key: timestamp
+      transform: unix_timestamp_date
+    size:                            # -> {{SIZE}}  (human-readable, e.g. "1.80 GB")
+      key: size
+      transform: bytes_to_human
+    md5: md5                        # -> {{MD5}}
+    sha256: sha256                   # -> {{SHA256}}
+    buildtype: buildtype             # -> {{BUILDTYPE}}
+    forum: forum                     # -> {{FORUM}}
+    telegram_channel: telegram        # -> {{TELEGRAM_CHANNEL}}
+    firmware: firmware               # -> {{FIRMWARE}}
+    gapps: gapps                     # -> {{GAPPS}}
+
+    # -------------------------------------------------------------------
+    # GitHub Releases-specific links, all derived from the same "download"
+    # asset URL above (no extra data needed - the owner/repo/tag are parsed
+    # straight out of that URL). This only works when the source JSON's
+    # download link is a github.com/.../releases/download/{tag}/{asset} URL.
+    # -------------------------------------------------------------------
+    release_url:                     # -> {{RELEASE_URL}}, the release PAGE (not the .zip)
+      key: download
+      transform: github_release_page
+
+    boot_img_url:                    # -> {{BOOT_IMG_URL}}
+      key: download
+      transform: github_release_asset
+      arg: boot.img
+
+    vendor_img_url:                  # -> {{VENDOR_IMG_URL}}
+      key: download
+      transform: github_release_asset
+      arg: vendor.img
+
+# Buttons can reference any placeholder above, including sourced ones, so
+# every link always points at the correct build/release automatically.
+buttons:
+  - text: "📦 Release Page"
+    url: "{{RELEASE_URL}}"
+
+  - text: "📥 ROM (zip)"
+    url: "{{DOWNLOAD_URL}}"
+
+  - text: "🥾 boot.img"
+    url: "{{BOOT_IMG_URL}}"
+
+  - text: "🧩 vendor.img"
+    url: "{{VENDOR_IMG_URL}}"
+
+  - text: "📝 Changelog"
+    url: "https://skyx-arch.github.io/SkyX-Arch_ROM_site/?rom=crdroid-plato"
+
+  - text: "📖 Installation Guide"
+    url: "https://skyx-arch.github.io/SkyX-Arch_ROM_site/?rom=crdroid-plato"
