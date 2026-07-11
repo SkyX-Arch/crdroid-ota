@@ -1,0 +1,76 @@
+name: Publish Telegram Post (reusable)
+
+# Reusable "core" workflow: given a single config_path, generates the post
+# and sends/pins it in Telegram. Called by telegram-release.yml, either
+# once (manual/release/tag runs) or in a matrix (one call per device whose
+# root-level JSON changed) - see that file for the trigger logic.
+
+on:
+  workflow_call:
+    inputs:
+      config_path:
+        description: "Path to the release config YAML to publish"
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Check required secrets
+        run: |
+          missing=0
+          if [ -z "${{ secrets.TELEGRAM_TOKEN }}" ]; then
+            echo "::error::Missing required secret: TELEGRAM_TOKEN"
+            missing=1
+          fi
+          if [ -z "${{ secrets.TELEGRAM_CHAT_ID }}" ]; then
+            echo "::error::Missing required secret: TELEGRAM_CHAT_ID"
+            missing=1
+          fi
+          if [ "$missing" -eq 1 ]; then
+            exit 1
+          fi
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: pip install --quiet pyyaml requests
+
+      - name: Generate Telegram post
+        run: |
+          python3 scripts/generate_telegram_post.py \
+            --config "${{ inputs.config_path }}" \
+            --template telegram/templates/release.html \
+            --output-dir telegram/output
+
+      - name: Send post to Telegram and pin it
+        env:
+          TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          TELEGRAM_THREAD_ID: ${{ secrets.TELEGRAM_THREAD_ID }}
+        run: |
+          python3 scripts/send_telegram_post.py --output-dir telegram/output
+
+      - name: Build a safe artifact name
+        id: artifact_name
+        run: |
+          SAFE=$(echo "${{ inputs.config_path }}" | tr '/.' '--')
+          echo "name=telegram-post-$SAFE" >> "$GITHUB_OUTPUT"
+
+      - name: Upload generated post as build artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ steps.artifact_name.outputs.name }}
+          path: telegram/output/
+          retention-days: 7
