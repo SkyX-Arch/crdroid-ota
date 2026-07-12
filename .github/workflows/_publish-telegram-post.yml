@@ -12,6 +12,11 @@ on:
         description: "Path to the release config YAML to publish"
         required: true
         type: string
+      ref:
+        description: "Git ref to checkout (branch/tag/SHA). Defaults to 'main' - this MUST be the branch that has the freshly updated JSON/config, not the ref that triggered the caller workflow (e.g. a release tag would be stale)."
+        required: false
+        type: string
+        default: "main"
 
 permissions:
   contents: read
@@ -22,6 +27,8 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.ref }}
 
       - name: Check required secrets
         run: |

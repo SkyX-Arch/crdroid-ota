@@ -81,9 +81,9 @@ jobs:
           entry = data["response"][0]
 
           entry["filename"]  = os.environ["ASSET_NAME"]
-          entry["download"]  = os.environ["ASSET_URL"]
-          entry["timestamp"] = int(os.environ["TIMESTAMP"])
-          entry["md5"]       = os.environ["MD5"]
+          entry["url"]  = os.environ["ASSET_URL"]
+          entry["datetime"] = int(os.environ["TIMESTAMP"])
+          entry["id"]       = os.environ["MD5"]
           entry["sha256"]    = os.environ["SHA256"]
           entry["size"]      = int(os.environ["SIZE"])
 
@@ -132,4 +132,5 @@ jobs:
     uses: ./.github/workflows/_publish-telegram-post.yml
     with:
       config_path: telegram/config/plato.yml
+      ref: main
     secrets: inherit
