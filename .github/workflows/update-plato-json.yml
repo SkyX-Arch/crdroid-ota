@@ -3,12 +3,20 @@ name: Update plato.json on Release
 on:
   release:
     types: [published]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Тег релиза, для которого нужно обновить plato.json"
+        required: true
+        type: string
 
 jobs:
   update-plato-json:
     runs-on: ubuntu-latest
     permissions:
       contents: write
+    outputs:
+      changed: ${{ steps.commit.outputs.changed }}
 
     steps:
       - name: Checkout repository
@@ -21,7 +29,7 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          RELEASE_TAG="${{ github.event.release.tag_name }}"
+          RELEASE_TAG="${{ github.event.inputs.tag || github.event.release.tag_name }}"
           REPO="${{ github.repository }}"
 
           # Имя первого .zip-файла в релизе
@@ -59,9 +67,10 @@ jobs:
           SHA256:     ${{ steps.hashes.outputs.sha256 }}
           SIZE:       ${{ steps.hashes.outputs.size }}
           TIMESTAMP:  ${{ steps.hashes.outputs.timestamp }}
+          TAG:        ${{ steps.asset.outputs.tag }}
         run: |
           python3 - <<'PYEOF'
-          import json, os
+          import json, os, re
 
           path = "plato.json"
 
@@ -72,11 +81,20 @@ jobs:
           entry = data["response"][0]
 
           entry["filename"]  = os.environ["ASSET_NAME"]
-          entry["download"]  = os.environ["ASSET_URL"]
-          entry["timestamp"] = int(os.environ["TIMESTAMP"])
-          entry["md5"]       = os.environ["MD5"]
+          entry["url"]  = os.environ["ASSET_URL"]
+          entry["datetime"] = int(os.environ["TIMESTAMP"])
+          entry["id"]       = os.environ["MD5"]
           entry["sha256"]    = os.environ["SHA256"]
           entry["size"]      = int(os.environ["SIZE"])
+
+          # Версия берётся из тега релиза (надёжнее парсинга имени файла -
+          # тег есть всегда, а формат имени архива может отличаться от ROM к ROM).
+          # Ожидается тег вида "...-v12.11" -> "12.11".
+          match = re.search(r"-v(\d+(?:\.\d+)*)$", os.environ["TAG"])
+          if match:
+              entry["version"] = match.group(1)
+          else:
+              print(f"WARNING: could not extract version from tag '{os.environ['TAG']}', leaving 'version' unchanged")
 
           with open(path, "w", encoding="utf-8") as f:
               json.dump(data, f, indent=4, ensure_ascii=False)
@@ -85,10 +103,33 @@ jobs:
           PYEOF
 
       - name: Commit and push plato.json
+        id: commit
         run: |
           git config user.name  "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add plato.json
-          git diff --cached --quiet && echo "No changes to commit" && exit 0
+          if git diff --cached --quiet; then
+            echo "No changes to commit"
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
           git commit -m "chore: update plato.json for release ${{ steps.asset.outputs.tag }}"
           git push
+          echo "changed=true" >> "$GITHUB_OUTPUT"
+
+  # ---------------------------------------------------------------------
+  # Runs directly after plato.json is committed and pushed - in the SAME
+  # workflow run, as a dependent job. This guarantees the Telegram post is
+  # generated from the JUST-UPDATED plato.json (no race condition), and
+  # side-steps the GitHub Actions rule that a push made with the default
+  # GITHUB_TOKEN does NOT trigger other workflows via "on: push" - calling
+  # the reusable workflow directly here avoids relying on that entirely.
+  # Only runs if plato.json actually changed (skips on "No changes").
+  # ---------------------------------------------------------------------
+  publish-telegram-post:
+    needs: update-plato-json
+    if: needs.update-plato-json.outputs.changed == 'true'
+    uses: ./.github/workflows/_publish-telegram-post.yml
+    with:
+      config_path: telegram/config/plato.yml
+    secrets: inherit

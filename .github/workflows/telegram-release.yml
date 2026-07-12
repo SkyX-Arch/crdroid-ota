@@ -1,116 +1,43 @@
-name: Telegram Release Publisher
+name: Telegram Release Publisher (manual test run)
 
 # ---------------------------------------------------------------------------
-# Automatic trigger (main path): a root-level device JSON file such as
-# plato.json is committed/updated by ANOTHER workflow/bot at release time.
-# This workflow reacts to that exact push, diffs the commit, and only
-# publishes once the file has actually changed - so it always reads the
-# freshly updated JSON, never a stale copy from before the update.
+# This workflow is now ONLY for manually testing the publish pipeline for
+# any given config - e.g. to check the pipeline itself, or to re-send a
+# post without re-running the OTA-json update.
 #
-# Convention: "plato.json" (repo root) pairs with "telegram/config/plato.yml".
-# Add a device? Add "<device>.json" at the root + "telegram/config/<device>.yml"
-# - no workflow changes needed, the detection step below is fully generic.
+# The real automatic path is NOT here anymore. It lives directly inside
+# each device's own "update-<device>-json.yml" workflow (e.g.
+# update-plato-json.yml): after that workflow commits the fresh JSON, it
+# calls _publish-telegram-post.yml itself, in the same run, as a dependent
+# job. Two reasons this workflow doesn't try to watch for that automatically:
 #
-# Manual/testing trigger: workflow_dispatch (pick any config) and, if you
-# still want them, GitHub Release / tag-push triggers using the default
-# config - useful for testing the pipeline itself, independent of whether
-# a device JSON changed.
+#   1. A push made with the default GITHUB_TOKEN (which is what those
+#      update workflows use to commit) does NOT trigger other workflows via
+#      "on: push" - that's a deliberate GitHub Actions anti-recursion rule.
+#      Watching for the push here would simply never fire.
+#   2. Listening to "release: published" here as well (in addition to the
+#      device workflow that also listens to it) caused two workflow runs to
+#      fire in parallel with no ordering guarantee - the post could easily
+#      be generated from the OLD JSON, seconds before the update workflow
+#      committed the new one.
+#
+# Calling the reusable workflow directly from within update-plato-json.yml
+# (see that file) avoids both problems entirely.
 # ---------------------------------------------------------------------------
 
 on:
-  push:
-    branches:
-      - main
-    tags:
-      - "v*"
   workflow_dispatch:
     inputs:
       config_path:
-        description: "Path to release config YAML"
+        description: "Path to release config YAML to publish"
         required: false
         default: "telegram/config/plato.yml"
-  release:
-    types: [published]
 
 permissions:
   contents: read
 
 jobs:
-  # -------------------------------------------------------------------------
-  # Runs only for ordinary branch pushes (not tag pushes). Figures out which
-  # root-level *.json files changed in THIS push, and maps each one to its
-  # matching telegram/config/<name>.yml, if one exists.
-  # -------------------------------------------------------------------------
-  detect-json-changes:
-    if: github.event_name == 'push' && !startsWith(github.ref, 'refs/tags/')
-    runs-on: ubuntu-latest
-    outputs:
-      configs: ${{ steps.detect.outputs.configs }}
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 2
-
-      - name: Detect changed device JSON files
-        id: detect
-        run: |
-          BEFORE="${{ github.event.before }}"
-          AFTER="${{ github.sha }}"
-
-          if [ -z "$BEFORE" ] || [ "$BEFORE" = "0000000000000000000000000000000000000000" ]; then
-            # First push seen for this ref (e.g. new branch) - fall back to
-            # the files touched in the latest commit only.
-            CHANGED=$(git show --name-only --pretty="" "$AFTER")
-          else
-            CHANGED=$(git diff --name-only "$BEFORE" "$AFTER")
-          fi
-
-          # Only JSON files sitting directly at the repo root count as
-          # "device OTA files" (no "/" anywhere in the path).
-          ROOT_JSON=$(printf '%s\n' "$CHANGED" | grep -E '^[^/]+\.json$' || true)
-
-          CONFIGS="[]"
-          if [ -n "$ROOT_JSON" ]; then
-            while IFS= read -r file; do
-              [ -z "$file" ] && continue
-              name="${file%.json}"
-              candidate="telegram/config/${name}.yml"
-              if [ -f "$candidate" ]; then
-                echo "Changed '$file' -> using config '$candidate'"
-                CONFIGS=$(echo "$CONFIGS" | jq --arg c "$candidate" '. + [$c]')
-              else
-                echo "::warning::'$file' changed, but no matching '$candidate' was found - skipping"
-              fi
-            done <<< "$ROOT_JSON"
-          fi
-
-          echo "configs=$(echo "$CONFIGS" | jq -c .)" >> "$GITHUB_OUTPUT"
-
-  publish-on-json-change:
-    needs: detect-json-changes
-    if: >-
-      github.event_name == 'push' && !startsWith(github.ref, 'refs/tags/') &&
-      needs.detect-json-changes.outputs.configs != '[]'
-    strategy:
-      matrix:
-        config_path: ${{ fromJson(needs.detect-json-changes.outputs.configs) }}
-      fail-fast: false
-    uses: ./.github/workflows/_publish-telegram-post.yml
-    with:
-      config_path: ${{ matrix.config_path }}
-    secrets: inherit
-
-  # -------------------------------------------------------------------------
-  # Manual runs, GitHub Releases, and tag pushes always use a single,
-  # explicitly chosen config - independent of whether any device JSON
-  # changed in this exact commit.
-  # -------------------------------------------------------------------------
-  publish-manual-or-release:
-    if: >-
-      github.event_name == 'workflow_dispatch' ||
-      github.event_name == 'release' ||
-      (github.event_name == 'push' && startsWith(github.ref, 'refs/tags/'))
+  publish:
     uses: ./.github/workflows/_publish-telegram-post.yml
     with:
       config_path: ${{ github.event.inputs.config_path || 'telegram/config/plato.yml' }}
