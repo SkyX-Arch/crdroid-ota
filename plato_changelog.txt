@@ -11,9 +11,12 @@ Maintainer: SkyX-Arch
 - General stability improvements across the system
 - Improved memory management to reduce application freezes and browser crashes
 - Enhanced graphics performance for a smoother and more responsive user experience
+- Migrated system rendering to Vulkan for improved performance and overall stability
 - Increased reliability of the under-display fingerprint sensor
+- Improved the MediaTek adaptive brightness service to prevent occasional crashes
 - Refined adaptive display brightness behavior
-- Optimized power management to improve idle battery efficiency
+- Optimized power management to reduce battery drain while the screen is off
+- Reduced occasional micro-stutters during everyday use
 - Improved battery monitoring and charging stability
 - Enhanced network reliability and resolved SSL-related connectivity issues
 - Improved Wi-Fi compatibility by disabling unsupported hardware features
