@@ -9,7 +9,6 @@ Maintainer: SkyX-Arch
 2026-07-14
 ----------------------------------------------------
 - Fixed a video codec crash when viewing certain videos
-- Fixed a crash of several applications due to insufficient allocated memory
 - Improved overall system responsiveness and smoothness
 - Plato's device tree structure has been completely redesigned to improve adaptability to various custom firmwares
 
