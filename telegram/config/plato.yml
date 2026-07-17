@@ -24,7 +24,7 @@ pin_message: false
 known_issues:
   - Keep Smart Pixels disabled.
   - X-Engine may cause washed-out colors or a white tint on Android 16. See the pinned post for a workaround. A permanent fix depends on upstream ROM changes.
-  - White noise after the Xiaomi logo, cosmetic bug.
+  - When the phone boots up, after the Xiaomi logo appears, white noise appears, this is a cosmetic bug.
 
 # -----------------------------------------------------------------------
 # Everything below is pulled automatically from a JSON file that lives at
