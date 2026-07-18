@@ -22,9 +22,9 @@ pin_message: false
 # Leave the list empty ("known_issues: []") to render "• None".
 # -----------------------------------------------------------------------
 known_issues:
-- Disable Smart Pixels.
-- X-Engine may cause washed-out colors or a white tint on Android 16. See the pinned post for a workaround; a fix is ​​pending in the main development branch.
-- White noise after the Xiaomi logo is a cosmetic issue.
+- Keep Smart Pixels disabled.
+- X-Engine may cause white tint/washed colors on A16 (workaround in pinned post).
+- Boot white noise after Xiaomi logo is cosmetic.
 
 # -----------------------------------------------------------------------
 # Everything below is pulled automatically from a JSON file that lives at
