@@ -6,6 +6,13 @@ Maintainer: SkyX-Arch
 
 ====================================================
 
+2026-07-19
+----------------------------------------------------
+- Fixed power service errors related to incorrect paths to processor cores
+- The last spaces in the bootloader have been fixed, now it transmits the status more correctly
+
+====================================================
+
 2026-07-18
 ----------------------------------------------------
 - Fixed a video codec crash when viewing certain videos
