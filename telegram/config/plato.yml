@@ -97,16 +97,7 @@ source:
 buttons:
   - text: "📦 Release Page"
     url: "{{RELEASE_URL}}"
-
-  - text: "📥 ROM (zip)"
-    url: "{{DOWNLOAD_URL}}"
-
-  - text: "🥾 boot.img"
-    url: "{{BOOT_IMG_URL}}"
-
-  - text: "🧩 vendor.img"
-    url: "{{VENDOR_IMG_URL}}"
-
+    
   - text: "📝 Changelog"
     url: "https://skyx-arch.github.io/SkyX-Arch_ROM_site/?rom=crdroid-plato"
 
