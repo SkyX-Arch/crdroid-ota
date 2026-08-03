@@ -22,34 +22,53 @@ Two sources of placeholder data
    of "known issues"), so it is always maintained by hand in the config -
    it never comes from the source JSON below.
 
-2. An optional `source:` block that reads a *separate* JSON file already
-   committed to the repo (e.g. an OTA-server style file such as
-   telegram/data/plato.json) and pulls build-specific data out of it:
-   version, download link, checksums, size, build timestamp, etc.
+2. An optional `sources:` list (or legacy single `source:` block) that reads
+   *separate* JSON files already committed to the repo (e.g. OTA-server
+   style files such as plato.json) and pulls build-specific data out of
+   them: version, download link, checksums, size, build timestamp, etc.
 
    Different ROMs/OTA servers name these fields differently (one calls the
    download link "download", another calls it "url"). To stay adaptive,
-   `source.fields` is a MAPPING you control per config file:
+   each source's `fields` is a MAPPING you control per config file:
 
-       source:
-         path: telegram/data/plato.json   # JSON file, already in the repo
-         list_key: response                # top-level key holding a list (optional)
-         index: 0                          # which list entry to use (optional, default 0)
-         fields:
-           download_url: download          # <- generic name : actual key in THIS json
-           version: version
-           build_date:
-             key: timestamp
-             transform: unix_timestamp_date
-           size:
-             key: size
-             transform: bytes_to_human
+       sources:
+         - path: plato.json               # JSON file, already in the repo
+           list_key: response               # top-level key holding a list (optional)
+           index: 0                         # which list entry to use (optional, default 0)
+           fields:
+             download_url: url             # <- generic name : actual key in THIS json
+             version: version
+             build_date:
+               key: datetime
+               transform: unix_timestamp_date
+             size:
+               key: size
+               transform: bytes_to_human
 
    Each entry in `fields` becomes a placeholder named after its generic
    name, e.g. `download_url` -> {{DOWNLOAD_URL}}. If another ROM's JSON
-   calls the download link "url" instead of "download", you only change
-   `download_url: download` to `download_url: url` in that ROM's config -
+   calls the download link "download" instead of "url", you only change
+   `download_url: url` to `download_url: download` in that ROM's config -
    no Python code changes needed.
+
+   Multiple sources: add more entries to `sources:` to pull data from more
+   than one JSON file for the same post - e.g. a separate GApps-build json
+   alongside the regular one. Give a secondary source a `prefix` so its
+   placeholders don't collide with the first source's:
+
+       sources:
+         - path: plato.json
+           list_key: response
+           fields:
+             download_url: url
+         - path: platogms.json
+           list_key: response
+           prefix: gapps_                  # -> {{GAPPS_DOWNLOAD_URL}}
+           fields:
+             download_url: url
+
+   The legacy singular `source:` (a single mapping, not a list) still works
+   exactly as before, for existing configs.
 
    Supported transforms (see TRANSFORMS below):
      - `unix_timestamp_date` - unix seconds -> "YYYY-MM-DD"
@@ -62,9 +81,11 @@ Two sources of placeholder data
        Requires `arg: <filename>`, e.g.:
 
            boot_img_url:
-             key: download          # any asset URL from the same release
+             key: url               # any asset URL from the same release
              transform: github_release_asset
              arg: boot.img
+     - `regex_extract` - pulls a substring out of another field via regex,
+       e.g. a version number embedded in a filename.
 
    New transforms can be added to TRANSFORMS if a future ROM needs one.
 
@@ -232,11 +253,33 @@ def github_release_asset(value, arg):
     return f"https://github.com/{owner}/{repo}/releases/download/{tag}/{arg}"
 
 
+def regex_extract(value, arg):
+    """
+    Extracts a substring out of `value` using the regex pattern in `arg`.
+    Returns the first capturing group if the pattern has one, otherwise
+    the whole match. Useful when a field you need (e.g. version) isn't
+    written to the source JSON directly, but is embedded in another field
+    (e.g. the filename or download URL), for example:
+
+        version:
+          key: filename
+          transform: regex_extract
+          arg: 'v(\\d+(?:\\.\\d+)*)\\.zip$'
+    """
+    if not arg:
+        raise ValueError("regex_extract requires 'arg' (a regex pattern, ideally with one capturing group)")
+    match = re.search(arg, str(value))
+    if not match:
+        raise ValueError(f"regex_extract: pattern {arg!r} did not match value {value!r}")
+    return match.group(1) if match.groups() else match.group(0)
+
+
 TRANSFORMS = {
     "unix_timestamp_date": unix_timestamp_date,
     "bytes_to_human": bytes_to_human,
     "github_release_page": github_release_page,
     "github_release_asset": github_release_asset,
+    "regex_extract": regex_extract,
 }
 
 
@@ -269,27 +312,24 @@ def resolve_source_node(data, list_key, index):
     return node
 
 
-def build_source_placeholders(config):
+def build_placeholders_from_one_source(source_cfg, source_label):
     """
-    Reads config['source'] (if present) and returns a dict of
-    UPPER_CASE placeholder -> value, using the user-defined field mapping.
-    Returns {} if no 'source' block is configured (fully backward compatible).
-
-    source.path is resolved relative to the current working directory
-    (i.e. the repo root, since the workflow runs from there after checkout) -
-    not relative to the config file's own location.
+    Reads a single source block ({path, list_key, index, fields, prefix})
+    and returns a dict of UPPER_CASE placeholder -> value.
+    `prefix`, if set, is prepended to every generic field name before
+    upper-casing, e.g. prefix "gapps_" + field "download_url" -> {{GAPPS_DOWNLOAD_URL}}.
+    This lets several sources (e.g. plato.json + platogms.json) contribute
+    placeholders side by side without colliding.
     """
-    source_cfg = config.get("source")
-    if not source_cfg:
-        return {}
-
     path = source_cfg.get("path")
     if not path:
-        raise ConfigError("'source.path' is required when a 'source' block is set")
+        raise ConfigError(f"'path' is required in {source_label}")
 
     field_map = source_cfg.get("fields") or {}
     if not field_map:
-        raise ConfigError("'source.fields' must define at least one field mapping")
+        raise ConfigError(f"'{source_label}.fields' must define at least one field mapping")
+
+    prefix = source_cfg.get("prefix") or ""
 
     data = load_json(path)
     node = resolve_source_node(data, source_cfg.get("list_key"), source_cfg.get("index", 0))
@@ -307,7 +347,7 @@ def build_source_placeholders(config):
 
         if not source_key or source_key not in node:
             print(
-                f"WARNING: source field '{generic_name}' (key '{source_key}') "
+                f"WARNING: {source_label} field '{generic_name}' (key '{source_key}') "
                 f"not found in {path}, leaving it empty",
                 file=sys.stderr,
             )
@@ -318,17 +358,68 @@ def build_source_placeholders(config):
                 transform = TRANSFORMS.get(transform_name)
                 if not transform:
                     raise ConfigError(
-                        f"Unknown transform '{transform_name}' for source field '{generic_name}'. "
+                        f"Unknown transform '{transform_name}' for {source_label} field '{generic_name}'. "
                         f"Available transforms: {', '.join(sorted(TRANSFORMS))}"
                     )
                 try:
                     value = transform(value, transform_arg)
                 except Exception as exc:  # noqa: BLE001
                     raise ConfigError(
-                        f"Failed to apply transform '{transform_name}' to field '{generic_name}': {exc}"
+                        f"Failed to apply transform '{transform_name}' to {source_label} field '{generic_name}': {exc}"
                     ) from exc
 
-        placeholders[generic_name.upper()] = value
+        placeholders[f"{prefix}{generic_name}".upper()] = value
+
+    return placeholders
+
+
+def build_source_placeholders(config):
+    """
+    Reads config['sources'] (a list) or the legacy single config['source']
+    (a dict) and returns a merged dict of UPPER_CASE placeholder -> value.
+    Returns {} if neither is configured (fully backward compatible).
+
+    Multiple sources let one release pull data from more than one JSON file,
+    e.g. a device's regular OTA json AND a separate GApps-build json, using
+    a `prefix` per source to keep their placeholders distinct:
+
+        sources:
+          - path: plato.json
+            list_key: response
+            fields:
+              download_url: url
+              ...
+          - path: platogms.json
+            list_key: response
+            prefix: gapps_          # -> {{GAPPS_DOWNLOAD_URL}}, {{GAPPS_FILENAME}}, ...
+            fields:
+              download_url: url
+              filename: filename
+              size:
+                key: size
+                transform: bytes_to_human
+
+    If two sources define the same placeholder name (e.g. both omit prefix
+    and both map "device"), the LATER source in the list wins - put the
+    more important one last, or (better) always set a `prefix` on secondary
+    sources to avoid the collision entirely.
+
+    Every source's `path` is resolved relative to the current working
+    directory (i.e. the repo root, since the workflow runs from there after
+    checkout) - not relative to the config file's own location.
+    """
+    sources = config.get("sources")
+    if sources is None:
+        legacy = config.get("source")
+        sources = [legacy] if legacy else []
+    elif not isinstance(sources, list):
+        raise ConfigError("'sources' must be a list of source blocks")
+
+    placeholders = {}
+    for i, source_cfg in enumerate(sources):
+        if not isinstance(source_cfg, dict):
+            raise ConfigError(f"'sources[{i}]' must be a mapping")
+        placeholders.update(build_placeholders_from_one_source(source_cfg, f"sources[{i}]"))
 
     return placeholders
 
@@ -388,7 +479,7 @@ def main():
 
         # 2) Static fields written directly in the YAML config. These always
         #    win over sourced values if both define the same placeholder name.
-        config_for_flatten = {k: v for k, v in config.items() if k != "source"}
+        config_for_flatten = {k: v for k, v in config.items() if k not in ("source", "sources")}
         static_placeholders = flatten(config_for_flatten)
 
         placeholders = {**source_placeholders, **static_placeholders}
