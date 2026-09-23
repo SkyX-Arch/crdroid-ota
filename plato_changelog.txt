@@ -6,6 +6,18 @@ Maintainer: SkyX-Arch
 
 ====================================================
 
+2026-09-23
+----------------------------------------------------
+- Updated crDroid base from 12.11 to 12.12
+- Fixed a video codec crash affecting video playback in some applications; related visual artifacts should also be resolved
+- Further improved lk.img and its patches, achieving maximum Play Integrity compatibility on custom ROMs
+- Expanded lk.img customization capabilities, opening the way for further modifications, new fastboot commands, features, and more
+- Improved the Google services integration: a separate GApps build is now available with a dedicated system updater configuration
+- The vanilla build without Google services will continue to be released as well
+And many more improvements and changes under the hood
+
+====================================================
+
 2026-07-19
 ----------------------------------------------------
 - Fixed power service errors related to incorrect paths to processor cores
