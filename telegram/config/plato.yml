@@ -143,7 +143,7 @@ buttons:
   - text: "🥾 boot.img"
     url: "{{BOOT_IMG_URL}}"
 
-  - text: "🧩 vendor.img"
+  - text: "🧩 vendor_boot.img"
     url: "{{VENDOR_IMG_URL}}"
 
   - text: "📝 Changelog"
