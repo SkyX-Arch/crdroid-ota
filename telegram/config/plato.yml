@@ -106,7 +106,7 @@ sources:
       vendor_img_url:                  # -> {{VENDOR_IMG_URL}}
         key: download
         transform: github_release_asset
-        arg: vendor.img
+        arg: vendor_boot.img
 
   # --- GApps build (same release, separate archive) -----------------------
   # update-plato-json.yml (see .github/workflows/) also finds the *gapps*
