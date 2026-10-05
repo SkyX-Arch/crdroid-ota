@@ -4,12 +4,12 @@
             "maintainer": "SkyX-Arch",
             "oem": "Xiaomi",
             "device": "Xiaomi 12T",
-            "filename": "crDroidAndroid-16.0-20260923-plato-v12.12.zip",
-            "download": "https://github.com/SkyX-Arch/crdroid-ota/releases/download/crDroidAndroid-16.0-20260923-plato-v12.12/crDroidAndroid-16.0-20260923-plato-v12.12.zip",
-            "timestamp": 1790155227,
-            "md5": "a22dc60b7aeb7cbd568c8fd69f40dd7b",
-            "sha256": "f4d46651ff2aaab9afe3ffd618a2745f03b301acd50c5392afa7a108997193fc",
-            "size": 1931979132,
+            "filename": "crDroidAndroid-17.0-20261004-plato-v13.0-BETA.zip",
+            "download": "https://sourceforge.net/projects/skyx-arch-roms/files/Xiaomi_Plato/Crdroid/Vanilla/crDroidAndroid-17.0-20261004-plato-v13.0-BETA.zip/download",
+            "timestamp": 1791121645,
+            "md5": "217fdfd19dac95388e19d3d282e166b6",
+            "sha256": "6d570feb0bdef66c6d7726e35db8d240d9f5abc23e91b875a4cec66989a9c8d8",
+            "size": 1948438763,
             "version": "12.12",
             "buildtype": "Unofficial",
             "forum": "https://github.com/SkyX-Arch/crdroid-ota",
@@ -22,7 +22,10 @@
             "telegram": "https://t.me/SkyXArch",
             "dt": "https://github.com/SkyX-Arch/android_device_xiaomi_plato",
             "common-dt": "https://github.com/SkyX-Arch/android_device_xiaomi_mt6895-common",
-            "kernel": "https://github.com/XagaForge/android_kernel_xiaomi_mt6895"
+            "kernel": "https://github.com/XagaForge/android_kernel_xiaomi_mt6895",
+            "release_url": "https://github.com/SkyX-Arch/crdroid-ota/releases/tag/crDroidAndroid-17.0-20261004-plato-v13.0-BETA",
+            "boot_url": "https://sourceforge.net/projects/skyx-arch-roms/files/Xiaomi_Plato/Crdroid/Vanilla/boot.img/download",
+            "vendor_boot_url": "https://sourceforge.net/projects/skyx-arch-roms/files/Xiaomi_Plato/Crdroid/Vanilla/vendor_boot.img/download"
         }
     ]
 }
