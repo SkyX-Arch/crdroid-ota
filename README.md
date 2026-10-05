@@ -9,7 +9,7 @@
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/Android-16-brightgreen?style=flat-square" />
+  <img src="https://img.shields.io/badge/Android-17-brightgreen?style=flat-square" />
   <img src="https://img.shields.io/badge/ROM-crDroid-blue?style=flat-square" />
   <img src="https://img.shields.io/badge/Status-Unofficial-orange?style=flat-square" />
   <img src="https://img.shields.io/badge/Maintained-Hobby-lightgrey?style=flat-square" />
@@ -30,7 +30,7 @@ There is no guarantee of stability, completeness, or long-term support.
 
 ## Features
 
-- crDroid Android 16 base
+- crDroid Android 17 base
 - User builds
 - Signed with release keys
 - OTA updates supported via built-in updater

@@ -89,31 +89,24 @@ sources:
       version: version                 # -> {{VERSION}}
 
       # ---------------------------------------------------------------
-      # GitHub Releases-specific links, all derived from the same "url"
-      # field above (no extra data needed - owner/repo/tag are parsed
-      # straight out of it). Uses "url" here because that's the field
-      # name THIS json actually uses for the download link (see note above).
+      # All downloadable files live on an external host (SourceForge etc.),
+      # not on GitHub - so these are plain pass-through fields, not
+      # GitHub-release-derived transforms. update-plato-json.yml writes
+      # "release_url" itself (the GitHub release PAGE, built from the repo
+      # + tag, independent of where the files are hosted), and copies
+      # "boot_url"/"vendor_boot_url" straight from release-links.txt without
+      # touching them - they're plain links, not hashed.
       # ---------------------------------------------------------------
-      release_url:                     # -> {{RELEASE_URL}}, the release PAGE (not a .zip)
-        key: download
-        transform: github_release_page
+      release_url: release_url         # -> {{RELEASE_URL}}, the GitHub release PAGE (no files attached)
+      boot_img_url: boot_url           # -> {{BOOT_IMG_URL}}
+      vendor_boot_img_url: vendor_boot_url  # -> {{VENDOR_BOOT_IMG_URL}}
 
-      boot_img_url:                    # -> {{BOOT_IMG_URL}}
-        key: download
-        transform: github_release_asset
-        arg: boot.img
-
-      vendor_img_url:                  # -> {{VENDOR_IMG_URL}}
-        key: download
-        transform: github_release_asset
-        arg: vendor_boot.img
-
-  # --- GApps build (same release, separate archive) -----------------------
-  # update-plato-json.yml (see .github/workflows/) also finds the *gapps*
-  # asset in the SAME GitHub release and writes it here, in the same
-  # {"response": [...]} shape as plato.json. `prefix: gapps_` keeps every
-  # placeholder from this source namespaced, e.g. {{GAPPS_DOWNLOAD_URL}},
-  # so it never collides with the regular build's placeholders above.
+  # --- GApps build (same release, separate archive, external host) -------
+  # update-plato-json.yml (see .github/workflows/) reads the gapps link from
+  # release-links.txt and writes it here, in the same {"response": [...]}
+  # shape as plato.json. `prefix: gapps_` keeps every placeholder from this
+  # source namespaced, e.g. {{GAPPS_DOWNLOAD_URL}}, so it never collides
+  # with the regular build's placeholders above.
   - path: platogms.json
     list_key: response
     index: 0
@@ -144,7 +137,7 @@ buttons:
     url: "{{BOOT_IMG_URL}}"
 
   - text: "🧩 vendor_boot.img"
-    url: "{{VENDOR_IMG_URL}}"
+    url: "{{VENDOR_BOOT_IMG_URL}}"
 
   - text: "📝 Changelog"
     url: "https://skyx-arch.github.io/SkyX-Arch_ROM_site/?rom=crdroid-plato"

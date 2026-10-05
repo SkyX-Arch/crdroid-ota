@@ -24,55 +24,119 @@ jobs:
         with:
           ref: main
 
-      - name: Get release asset info
-        id: asset
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Resolve release tag and page URL
+        id: release
         run: |
           RELEASE_TAG="${{ github.event.inputs.tag || github.event.release.tag_name }}"
-          REPO="${{ github.repository }}"
+          if [ -z "$RELEASE_TAG" ]; then
+            echo "::error::Could not determine release tag"
+            exit 1
+          fi
+          RELEASE_URL="${{ github.server_url }}/${{ github.repository }}/releases/tag/${RELEASE_TAG}"
+          echo "tag=$RELEASE_TAG"   >> $GITHUB_OUTPUT
+          echo "url=$RELEASE_URL"   >> $GITHUB_OUTPUT
 
-          # Обычный (не-gapps) .zip-файл в релизе
-          ASSET_NAME=$(gh release view "$RELEASE_TAG" --json assets \
-            -q '.assets[] | select(.name | test("gapps"; "i") | not) | select(.name | endswith(".zip")) | .name' | head -n 1)
+      - name: Read release-links.txt
+        id: links
+        run: |
+          # Формат файла: "ключ: ссылка", одна строка на файл. Строки с "#"
+          # и пустые строки игнорируются. Отсутствующая строка = этого
+          # файла в данном релизе нет (кроме "rom" - он обязателен).
+          #
+          #   rom:          основной ROM-архив (обязательно)
+          #   boot:         boot.img (необязательно)
+          #   vendor_boot:  vendor_boot.img (необязательно)
+          #   gapps:        отдельный архив с GApps (необязательно)
+          get_link() {
+            local key="$1"
+            if [ -f release-links.txt ]; then
+              grep -E "^${key}:" release-links.txt | head -n1 | sed -E "s/^${key}:[[:space:]]*//" | xargs || true
+            fi
+          }
 
-          # gapps-.zip в том же релизе (может отсутствовать - не у всех ROM есть отдельная gapps-сборка)
-          GAPPS_ASSET_NAME=$(gh release view "$RELEASE_TAG" --json assets \
-            -q '.assets[] | select(.name | test("gapps"; "i")) | select(.name | endswith(".zip")) | .name' | head -n 1)
+          # SourceForge и похожие хостинги часто отдают ссылки вида
+          # ".../filename.ext/download" - реальное имя файла лежит перед
+          # "/download", а не в самом хвосте пути.
+          filename_from_url() {
+            local url="$1"
+            local clean="${url%/download}"
+            basename "$clean" | cut -d'?' -f1
+          }
 
-          if [ -z "$ASSET_NAME" ]; then
-            echo "::error::No non-gapps .zip asset found in release $RELEASE_TAG"
+          ROM_URL=$(get_link rom)
+          BOOT_URL=$(get_link boot)
+          VENDOR_BOOT_URL=$(get_link vendor_boot)
+          GAPPS_URL=$(get_link gapps)
+
+          if [ -z "$ROM_URL" ]; then
+            echo "::error::release-links.txt has no 'rom:' line - the main ROM archive link is required"
             exit 1
           fi
 
-          ASSET_URL="https://github.com/${REPO}/releases/download/${RELEASE_TAG}/${ASSET_NAME}"
-          echo "name=$ASSET_NAME"   >> $GITHUB_OUTPUT
-          echo "url=$ASSET_URL"     >> $GITHUB_OUTPUT
-          echo "tag=$RELEASE_TAG"   >> $GITHUB_OUTPUT
+          echo "rom_url=$ROM_URL"                        >> $GITHUB_OUTPUT
+          echo "rom_filename=$(filename_from_url "$ROM_URL")" >> $GITHUB_OUTPUT
 
-          if [ -n "$GAPPS_ASSET_NAME" ]; then
-            GAPPS_ASSET_URL="https://github.com/${REPO}/releases/download/${RELEASE_TAG}/${GAPPS_ASSET_NAME}"
-            echo "gapps_name=$GAPPS_ASSET_NAME" >> $GITHUB_OUTPUT
-            echo "gapps_url=$GAPPS_ASSET_URL"   >> $GITHUB_OUTPUT
-            echo "Found gapps asset: $GAPPS_ASSET_NAME"
+          if [ -n "$BOOT_URL" ]; then
+            echo "boot_url=$BOOT_URL" >> $GITHUB_OUTPUT
           else
-            echo "gapps_name="                  >> $GITHUB_OUTPUT
-            echo "gapps_url="                    >> $GITHUB_OUTPUT
-            echo "No gapps asset found in this release - platogms.json will not be updated"
+            echo "boot_url=" >> $GITHUB_OUTPUT
+            echo "No 'boot:' line in release-links.txt - boot.img link will be left empty"
           fi
 
-      - name: Download release ZIP(s)
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          gh release download "${{ steps.asset.outputs.tag }}" \
-            --pattern "${{ steps.asset.outputs.name }}" \
-            --output release.zip
+          if [ -n "$VENDOR_BOOT_URL" ]; then
+            echo "vendor_boot_url=$VENDOR_BOOT_URL" >> $GITHUB_OUTPUT
+          else
+            echo "vendor_boot_url=" >> $GITHUB_OUTPUT
+            echo "No 'vendor_boot:' line in release-links.txt - vendor_boot.img link will be left empty"
+          fi
 
-          if [ -n "${{ steps.asset.outputs.gapps_name }}" ]; then
-            gh release download "${{ steps.asset.outputs.tag }}" \
-              --pattern "${{ steps.asset.outputs.gapps_name }}" \
-              --output release-gapps.zip
+          if [ -n "$GAPPS_URL" ]; then
+            echo "gapps_url=$GAPPS_URL"                          >> $GITHUB_OUTPUT
+            echo "gapps_filename=$(filename_from_url "$GAPPS_URL")" >> $GITHUB_OUTPUT
+          else
+            echo "gapps_url=" >> $GITHUB_OUTPUT
+            echo "gapps_filename=" >> $GITHUB_OUTPUT
+            echo "No 'gapps:' line in release-links.txt - platogms.json will not be updated"
+          fi
+
+      - name: Check boot/vendor_boot links are reachable
+        run: |
+          # Лёгкая проверка (HEAD-запрос, без скачивания) - просто чтобы
+          # сразу увидеть в логе битую ссылку. Не фейлит релиз: boot.img и
+          # vendor_boot.img не хэшируются, они просто ссылки.
+          check() {
+            local label="$1" url="$2"
+            [ -z "$url" ] && return 0
+            if curl -fsSL --head --connect-timeout 15 -o /dev/null "$url"; then
+              echo "$label link OK: $url"
+            else
+              echo "::warning::$label link looks unreachable: $url"
+            fi
+          }
+          check "boot.img"        "${{ steps.links.outputs.boot_url }}"
+          check "vendor_boot.img" "${{ steps.links.outputs.vendor_boot_url }}"
+
+      - name: Download ROM archive
+        run: |
+          curl -fSL --retry 3 --retry-delay 5 --connect-timeout 15 \
+            -o release.zip "${{ steps.links.outputs.rom_url }}"
+
+      - name: Download gapps archive
+        id: gapps_download
+        run: |
+          GAPPS_URL="${{ steps.links.outputs.gapps_url }}"
+          if [ -z "$GAPPS_URL" ]; then
+            echo "downloaded=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          if curl -fSL --retry 3 --retry-delay 5 --connect-timeout 15 \
+               -o release-gapps.zip "$GAPPS_URL"; then
+            echo "downloaded=true" >> "$GITHUB_OUTPUT"
+          else
+            # Внешний хостинг недоступен/ссылка сломана - не роняем весь
+            # релиз из-за этого, просто пропускаем обновление platogms.json.
+            echo "::warning::Failed to download gapps archive from $GAPPS_URL - skipping platogms.json update"
+            echo "downloaded=false" >> "$GITHUB_OUTPUT"
           fi
 
       - name: Compute hashes and size
@@ -83,7 +147,7 @@ jobs:
           echo "size=$(stat -c%s release.zip)"                       >> $GITHUB_OUTPUT
           echo "timestamp=$(unzip -p release.zip META-INF/com/android/metadata | grep 'post-timestamp' | cut -d'=' -f2)" >> $GITHUB_OUTPUT
 
-          if [ -f release-gapps.zip ]; then
+          if [ "${{ steps.gapps_download.outputs.downloaded }}" = "true" ]; then
             echo "gapps_md5=$(md5sum release-gapps.zip | awk '{print $1}')"       >> $GITHUB_OUTPUT
             echo "gapps_sha256=$(sha256sum release-gapps.zip | awk '{print $1}')" >> $GITHUB_OUTPUT
             echo "gapps_size=$(stat -c%s release-gapps.zip)"                       >> $GITHUB_OUTPUT
@@ -92,15 +156,19 @@ jobs:
 
       - name: Update JSON files
         env:
-          ASSET_NAME: ${{ steps.asset.outputs.name }}
-          ASSET_URL:  ${{ steps.asset.outputs.url }}
-          MD5:        ${{ steps.hashes.outputs.md5 }}
-          SHA256:     ${{ steps.hashes.outputs.sha256 }}
-          SIZE:       ${{ steps.hashes.outputs.size }}
-          TIMESTAMP:  ${{ steps.hashes.outputs.timestamp }}
-          TAG:        ${{ steps.asset.outputs.tag }}
-          GAPPS_ASSET_NAME: ${{ steps.asset.outputs.gapps_name }}
-          GAPPS_ASSET_URL:  ${{ steps.asset.outputs.gapps_url }}
+          TAG:             ${{ steps.release.outputs.tag }}
+          RELEASE_URL:     ${{ steps.release.outputs.url }}
+          ROM_FILENAME:    ${{ steps.links.outputs.rom_filename }}
+          ROM_URL:         ${{ steps.links.outputs.rom_url }}
+          BOOT_URL:        ${{ steps.links.outputs.boot_url }}
+          VENDOR_BOOT_URL: ${{ steps.links.outputs.vendor_boot_url }}
+          MD5:             ${{ steps.hashes.outputs.md5 }}
+          SHA256:          ${{ steps.hashes.outputs.sha256 }}
+          SIZE:            ${{ steps.hashes.outputs.size }}
+          TIMESTAMP:       ${{ steps.hashes.outputs.timestamp }}
+          GAPPS_DOWNLOADED: ${{ steps.gapps_download.outputs.downloaded }}
+          GAPPS_FILENAME:   ${{ steps.links.outputs.gapps_filename }}
+          GAPPS_URL:        ${{ steps.links.outputs.gapps_url }}
           GAPPS_MD5:        ${{ steps.hashes.outputs.gapps_md5 }}
           GAPPS_SHA256:     ${{ steps.hashes.outputs.gapps_sha256 }}
           GAPPS_SIZE:       ${{ steps.hashes.outputs.gapps_size }}
@@ -118,64 +186,70 @@ jobs:
               return match.group(1)
 
 
-          def update_entry_file(path, filename, url, timestamp, md5, sha256, size, version):
+          def load_or_init(path):
               if os.path.isfile(path):
                   with open(path, "r", encoding="utf-8") as f:
-                      data = json.load(f)
-              else:
-                  # First time this file is touched - start from an empty skeleton
-                  # with the same {"response": [{...}]} shape as plato.json.
-                  data = {"response": [{}]}
+                      return json.load(f)
+              # First time this file is touched - start from an empty skeleton
+              # with the same {"response": [{...}]} shape as plato.json.
+              return {"response": [{}]}
 
-              # Структура: {"response": [ {...} ]}
-              entry = data["response"][0]
 
-              entry["filename"] = filename
-              entry["download"] = url
-              entry["md5"] = md5
-              entry["sha256"] = sha256
-              entry["size"] = int(size)
-
-              if timestamp:
-                  entry["timestamp"] = int(timestamp)
-              else:
-                  print(f"WARNING: no timestamp available for {path}, leaving 'datetime' unchanged")
-
-              if version:
-                  entry["version"] = version
-
+          def save(path, data):
               with open(path, "w", encoding="utf-8") as f:
                   json.dump(data, f, indent=4, ensure_ascii=False)
-
               print(f"{path} updated successfully")
 
 
           version = extract_version(os.environ["TAG"])
 
-          update_entry_file(
-              "plato.json",
-              os.environ["ASSET_NAME"],
-              os.environ["ASSET_URL"],
-              os.environ["TIMESTAMP"],
-              os.environ["MD5"],
-              os.environ["SHA256"],
-              os.environ["SIZE"],
-              version,
-          )
+          # --- plato.json: main ROM build ------------------------------------
+          data = load_or_init("plato.json")
+          entry = data["response"][0]
 
-          if os.environ.get("GAPPS_ASSET_NAME"):
-              update_entry_file(
-                  "platogms.json",
-                  os.environ["GAPPS_ASSET_NAME"],
-                  os.environ["GAPPS_ASSET_URL"],
-                  os.environ["GAPPS_TIMESTAMP"],
-                  os.environ["GAPPS_MD5"],
-                  os.environ["GAPPS_SHA256"],
-                  os.environ["GAPPS_SIZE"],
-                  version,
-              )
+          entry["filename"] = os.environ["ROM_FILENAME"]
+          entry["download"] = os.environ["ROM_URL"]
+          entry["md5"] = os.environ["MD5"]
+          entry["sha256"] = os.environ["SHA256"]
+          entry["size"] = int(os.environ["SIZE"])
+          entry["release_url"] = os.environ["RELEASE_URL"]
+
+          # boot.img / vendor_boot.img are plain links (not hashed) - left
+          # untouched if release-links.txt had no line for them this release.
+          if os.environ.get("BOOT_URL"):
+              entry["boot_url"] = os.environ["BOOT_URL"]
+          if os.environ.get("VENDOR_BOOT_URL"):
+              entry["vendor_boot_url"] = os.environ["VENDOR_BOOT_URL"]
+
+          if os.environ["TIMESTAMP"]:
+              entry["timestamp"] = int(os.environ["TIMESTAMP"])
           else:
-              print("No gapps asset in this release - platogms.json left untouched")
+              print("WARNING: no timestamp available for plato.json, leaving 'datetime' unchanged")
+
+          if version:
+              entry["version"] = version
+
+          save("plato.json", data)
+
+          # --- platogms.json: GApps build (optional) -------------------------
+          if os.environ.get("GAPPS_DOWNLOADED") == "true":
+              gapps_data = load_or_init("platogms.json")
+              gapps_entry = gapps_data["response"][0]
+
+              gapps_entry["filename"] = os.environ["GAPPS_FILENAME"]
+              gapps_entry["download"] = os.environ["GAPPS_URL"]
+              gapps_entry["md5"] = os.environ["GAPPS_MD5"]
+              gapps_entry["sha256"] = os.environ["GAPPS_SHA256"]
+              gapps_entry["size"] = int(os.environ["GAPPS_SIZE"])
+
+              if os.environ["GAPPS_TIMESTAMP"]:
+                  gapps_entry["timestamp"] = int(os.environ["GAPPS_TIMESTAMP"])
+              if version:
+                  gapps_entry["version"] = version
+
+              save("platogms.json", gapps_data)
+          else:
+              print("No gapps archive downloaded this run - platogms.json left untouched")
           PYEOF
 
       - name: Commit and push JSON files
@@ -190,7 +264,7 @@ jobs:
             echo "changed=false" >> "$GITHUB_OUTPUT"
             exit 0
           fi
-          git commit -m "chore: update plato.json/platogms.json for release ${{ steps.asset.outputs.tag }}"
+          git commit -m "chore: update plato.json/platogms.json for release ${{ steps.release.outputs.tag }}"
           git push
           echo "changed=true" >> "$GITHUB_OUTPUT"
 

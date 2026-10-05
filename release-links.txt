@@ -1,0 +1,4 @@
+rom: https://sourceforge.net/projects/skyx-arch-roms/files/Xiaomi_Plato/Crdroid/Vanilla/crDroidAndroid-17.0-20261004-plato-v13.0-BETA.zip/download
+boot: https://sourceforge.net/projects/skyx-arch-roms/files/Xiaomi_Plato/Crdroid/Vanilla/boot.img/download
+vendor_boot: https://sourceforge.net/projects/skyx-arch-roms/files/Xiaomi_Plato/Crdroid/Vanilla/vendor_boot.img/download
+gapps: https://sourceforge.net/projects/skyx-arch-roms/files/Xiaomi_Plato/Crdroid/GAPPS/crDroidAndroid-17.0-20261004-platogapps-v13.0-BETA.zip/download
