@@ -23,7 +23,6 @@ pin_message: true
 # -----------------------------------------------------------------------
 known_issues:
   - Keep Smart Pixels disabled.
-  - X-Engine may cause white tint/washed colors on A16 (workaround in pinned post).
   - Boot white noise after Xiaomi logo is cosmetic.
 
 # -----------------------------------------------------------------------

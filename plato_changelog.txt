@@ -6,6 +6,16 @@ Maintainer: SkyX-Arch
 
 ====================================================
 
+2026-10-22
+----------------------------------------------------
+- Updated crDroid to version 13.0 based on Android 17 (stable release)
+- Fixed issues with Chromium-based browsers and applied kernel fixes
+- Fixed the white screen issue when using X-Engine rendering modes
+- Improved NFC module compatibility with Android 17
+- Various minor fixes and improvements
+
+====================================================
+
 2026-10-05
 ----------------------------------------------------
 - Updated crDroid to version 13.0-beta, now based on Android 17
